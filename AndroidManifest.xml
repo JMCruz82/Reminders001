@@ -5,8 +5,10 @@
     android:versionName="1.0" >
 
     <uses-sdk
-        android:minSdkVersion="8"
-        android:targetSdkVersion="16" />
+        android:minSdkVersion="16"
+        android:targetSdkVersion="17" />
+
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:allowBackup="true"
@@ -22,6 +24,30 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".NotificationView"
+            android:label="Details of notification" >
+        </activity>
+        
+        <activity
+            android:name="com.janmichaelcruz.reminders.EditActivity"
+            android:label="@string/app_name" >
+
+        </activity>
+
+        <receiver android:name="MyStartupIntentReceiver" >
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+
+                <category android:name="android.intent.category.HOME" />
+            </intent-filter>
+        </receiver>
+
+        <service android:name="com.janmichaelcruz.reminders.ReminderService" >
+            <intent-filter>
+                <action android:name="com.janmichaelcruz.reminders.ReminderService" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

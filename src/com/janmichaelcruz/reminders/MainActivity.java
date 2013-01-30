@@ -1,52 +1,62 @@
 package com.janmichaelcruz.reminders;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
 
 import android.os.Bundle;
-import android.app.Activity;
-import android.database.Cursor;
+import android.app.ListActivity;
+import android.content.Intent;
+import android.util.Log;
 import android.view.Menu;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.Toast;
 
-public class MainActivity extends Activity {
+public class MainActivity extends ListActivity {
+	private static final String TAG = "MainActivity";
+	ScheduledExecutorService threadPool;
+	
+	private List<String> labels;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
+
+		Intent serviceIntent = new Intent();
+
+		serviceIntent.setAction("com.janmichaelcruz.reminders.ReminderService");
+
+		startService(serviceIntent);
+
+        DatabaseHandler db = new DatabaseHandler(this);
+
+    	List<NotificationInfo> reminders  = db.getAllReminders();
 		
-		DBAdapter db = new DBAdapter(this);
-		
-		try {
-			String destPath = "/data/data" + getPackageName() + "/databases";
-			
-			File f = new File(destPath);
-			
-			if (!f.exists()) {
-				f.mkdirs();
-				
-				f.createNewFile();
-				
-				CopyDB(getBaseContext().getAssets().open("mydb"),
-					   new FileOutputStream(destPath + "/MyDB"));
-			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+		labels = new ArrayList<String>();
+
+		for (NotificationInfo nInfo : reminders) {
+			labels.add(nInfo.getId() + " - " + nInfo.getDateString() + " - " + nInfo.getTitle());
 		}
+
+		setListAdapter(new ArrayAdapter<String>(this,
+				android.R.layout.simple_list_item_1, labels));
+
+		Log.i(TAG, "MainActivity was created");
+	}
+	
+	public void onListItemClick(ListView parent, View v, int position, long id)
+	{
+		Toast.makeText(this, "You have selected " + labels.get(position), Toast.LENGTH_SHORT).show();
 		
-		db.open();
+		Intent i = new Intent(getApplicationContext(), EditActivity.class);
 		
-		Cursor c = db.getAllReminders();
+		startActivity(i);
 	}
 
-	private void CopyDB(InputStream open, FileOutputStream fileOutputStream) {
-		// TODO Auto-generated method stub
-		
+	public ScheduledExecutorService getThreadPool() {
+		return threadPool;
 	}
 
 	@Override
@@ -55,5 +65,4 @@ public class MainActivity extends Activity {
 		getMenuInflater().inflate(R.menu.activity_main, menu);
 		return true;
 	}
-
 }
